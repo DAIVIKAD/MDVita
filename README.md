@@ -1,2 +1,2 @@
-# MDvita
-“MDvita – AI Mental Wellness Platform for GenAI Exchange Hackathon”
+# MDVita
+“MDVita – AI Mental Wellness Platform for GenAI Exchange Hackathon”
