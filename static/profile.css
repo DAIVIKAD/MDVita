@@ -1,0 +1,130 @@
+/* ===== General Body ===== */
+body{
+  font-family: 'Segoe UI', sans-serif;
+  margin:0;
+  padding:0;
+  background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
+  color:#fff;
+  min-height:100vh;
+}
+
+/* ===== Container ===== */
+.profile-bg{
+  display:flex;
+  justify-content:center;
+  align-items:flex-start;
+  padding:50px 20px;
+}
+
+.profile-container{
+  width:100%;
+  max-width:500px;
+  background: rgba(0,212,170,0.05);
+  border-radius:15px;
+  padding:25px;
+  box-shadow:0 8px 20px rgba(0,0,0,0.3);
+}
+
+/* ===== Header ===== */
+.profile-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:20px;
+}
+
+.profile-header h1{
+  font-size:2rem;
+  color:#00d4aa;
+  margin:0;
+}
+
+.top-profile{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+}
+
+.top-profile img{
+  width:70px;
+  height:70px;
+  border-radius:50%;
+  object-fit:cover;
+  margin-bottom:5px;
+  border:2px solid #00d4aa;
+  cursor:pointer;
+}
+
+.top-profile input[type="file"]{
+  display:none;
+}
+
+/* ===== Profile Card ===== */
+.profile-card{
+  background: rgba(255,255,255,0.05);
+  padding:20px;
+  border-radius:10px;
+  text-align:center;
+  margin-bottom:20px;
+}
+
+.profile-card h2{
+  margin:10px 0 5px 0;
+  color:#00d4aa;
+}
+
+.profile-card p{
+  margin:0;
+  color:#a0c4c7;
+}
+
+/* ===== Actions ===== */
+.profile-actions input{
+  width:100%;
+  padding:12px;
+  margin:8px 0;
+  border-radius:8px;
+  border:none;
+  box-sizing:border-box;
+  font-size:1rem;
+}
+
+.profile-actions button{
+  width:100%;
+  padding:12px;
+  margin:6px 0;
+  border:none;
+  border-radius:8px;
+  background:#00d4aa;
+  color:#fff;
+  font-weight:600;
+  cursor:pointer;
+  transition:0.3s;
+}
+
+.profile-actions button:hover{
+  background:#00b392;
+}
+
+/* ===== Logout Button ===== */
+.logout-btn{
+  width:100%;
+  padding:12px;
+  margin-top:15px;
+  border:none;
+  border-radius:8px;
+  background:#f44336;
+  color:white;
+  font-weight:600;
+  cursor:pointer;
+  transition:0.3s;
+}
+
+.logout-btn:hover{ background:#d32f2f; }
+
+/* ===== Responsive ===== */
+@media(max-width:600px){
+  .profile-container{ padding:15px; }
+  .profile-header h1{ font-size:1.5rem; }
+  .top-profile img{ width:60px; height:60px; }
+}

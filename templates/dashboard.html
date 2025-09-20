@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MDVita - Dashboard</title>
+  <link rel="stylesheet" href="/static/dashboard.css">
+  <script type="module" src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <div class="dashboard-bg">
+    <div class="dashboard-container">
+
+      <!-- Header: Logo + Profile -->
+      <div class="dashboard-header">
+        <div class="logo-container">
+          <img src="/static/images/logo.png" alt="MDVita Logo" class="logo">
+          <h1>MDVita</h1>
+        </div>
+        <div class="profile-container">
+          <img id="profile-pic" src="/static/images/default-avatar.png" alt="Profile" class="profile-pic" onclick="goToProfile()">
+          <span id="user-name-top">Loading...</span>
+        </div>
+      </div>
+
+      <h2 id="greeting">Welcome!</h2>
+
+      <!-- Mood Buttons -->
+      <div class="mood-buttons">
+        <button onclick="logMood(1)">😢</button>
+        <button onclick="logMood(2)">😰</button>
+        <button onclick="logMood(3)">😐</button>
+        <button onclick="logMood(4)">😌</button>
+        <button onclick="logMood(5)">😊</button>
+      </div>
+
+      <!-- Mood Chart -->
+      <canvas id="moodChart" width="400" height="200"></canvas>
+
+      <!-- Navigation Cards -->
+      <div class="nav-cards">
+        <div class="card" onclick="location.href='/journal'">
+          <img src="/static/images/journal.png" alt="Journal">
+          <span>Journal</span>
+        </div>
+        <div class="card" onclick="location.href='/discover'">
+          <img src="/static/images/discover.png" alt="Discover">
+          <span>Discover</span>
+        </div>
+        <div class="card" onclick="location.href='/games'">
+          <img src="/static/images/games.png" alt="Games">
+          <span>Games</span>
+        </div>
+        <div class="card" onclick="goToProfile()">
+          <img src="/static/images/profile.png" alt="Profile">
+          <span>Profile</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js";
+    import { getFirestore, collection, doc, setDoc, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCnowHleZxXSH3bK34Bb1ZOgUNe5T28Gsg",
+      authDomain: "mdvita-229be.firebaseapp.com",
+      projectId: "mdvita-229be",
+      storageBucket: "mdvita-229be.appspot.com",
+      messagingSenderId: "417004792942",
+      appId: "1:417004792942:web:fe89b380020f15318fca7f",
+      measurementId: "G-NT5P07MJHX"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    const greeting = document.getElementById("greeting");
+    const userNameTop = document.getElementById("user-name-top");
+    const profilePic = document.getElementById("profile-pic");
+
+    const ctx = document.getElementById('moodChart').getContext('2d');
+    const moodChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"],
+        datasets: [{
+          label: 'Mood Trend',
+          data: [3,3,3,3,3,3,3],
+          borderColor: '#00d4aa',
+          tension: 0.3,
+          fill: false
+        }]
+      },
+      options: {
+        scales: {
+          y: {
+            min: 1,
+            max: 5,
+            ticks: {
+              stepSize: 1,
+              callback: function(val) {
+                const emojis = ["😢","😰","😐","😌","😊"];
+                return emojis[val-1];
+              }
+            }
+          }
+        }
+      }
+    });
+
+    let currentUser;
+
+    onAuthStateChanged(auth, async user => {
+      if(user){
+        currentUser = user;
+        greeting.innerText = `Welcome, ${user.displayName || user.email}!`;
+        userNameTop.innerText = user.displayName || user.email;
+
+        if(user.photoURL) profilePic.src = user.photoURL;
+
+        await loadMoodChart(user.uid);
+      } else {
+        window.location.href = "/";
+      }
+    });
+
+    window.logMood = async function(value){
+      if(!currentUser) return;
+      const today = new Date().toISOString().split('T')[0];
+      const moodDoc = doc(db, "moods", `${currentUser.uid}_${today}`);
+      await setDoc(moodDoc, {
+        user: currentUser.uid,
+        date: today,
+        value: value
+      });
+      await loadMoodChart(currentUser.uid);
+    }
+
+    async function loadMoodChart(uid){
+      const last7 = Array(7).fill(null);
+
+      const q = query(collection(db,"moods"), orderBy("date","desc"), limit(7));
+      const snapshot = await getDocs(q);
+      let i = 6;
+      snapshot.forEach(docSnap=>{
+        const m = docSnap.data();
+        if(m.user === uid){
+          last7[i] = m.value;
+          i--;
+        }
+      });
+
+      moodChart.data.datasets[0].data = last7;
+      moodChart.update();
+    }
+
+    window.goToProfile = function(){
+      window.location.href = "/profile";
+    }
+  </script>
+</body>
+</html>

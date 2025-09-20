@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MDVita - Discover</title>
+  <link rel="stylesheet" href="/static/dashboard.css">
+  <style>
+    /* Video Cards */
+    .video-card { margin: 10px; display: inline-block; vertical-align: top; text-align: center; }
+    .video-card p { max-width: 350px; color: #444; font-weight: 600; margin-top: 5px; }
+    /* News Cards */
+    .news-card { background: #e0f7f1; padding: 12px; border-radius: 12px; margin: 10px 0; }
+    .news-card h3 { margin: 0 0 5px; color: #00b38f; }
+    .news-card p { margin: 0 0 5px; }
+    .news-card a { color: #00796b; text-decoration: none; }
+    .news-card a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <div class="dashboard-bg">
+    <div class="dashboard-container">
+
+      <!-- Header -->
+      <div class="dashboard-header">
+        <div class="logo-container">
+          <img src="/static/images/logo.png" alt="MDVita Logo" class="logo">
+          <h1>MDVita</h1>
+        </div>
+        <div class="profile-container">
+          <img id="profile-pic" src="/static/images/default-avatar.png" alt="Profile" class="profile-pic" onclick="goToProfile()">
+          <span id="user-name-top">User</span>
+        </div>
+      </div>
+
+      <h2>Discover Health & Wellness</h2>
+
+      <!-- Search Bar -->
+      <div class="discover-search">
+        <input type="text" id="search-query" placeholder="Search health videos..." />
+      </div>
+
+      <!-- Videos Section -->
+      <div id="videos-section" class="videos-section">
+        <!-- Default Dummy Videos -->
+        <div class="video-card">
+          <iframe width="350" height="200" src="https://www.youtube.com/embed/1ZYbU82GVz4" frameborder="0" allowfullscreen></iframe>
+          <p>Healthy Eating Tips</p>
+        </div>
+        <div class="video-card">
+          <iframe width="350" height="200" src="https://www.youtube.com/embed/2L2lnxIcNmo" frameborder="0" allowfullscreen></iframe>
+          <p>Meditation for Beginners</p>
+        </div>
+        <div class="video-card">
+          <iframe width="350" height="200" src="https://www.youtube.com/embed/3Uo0JAUWijM" frameborder="0" allowfullscreen></iframe>
+          <p>10-Minute Full Body Workout</p>
+        </div>
+      </div>
+
+      <!-- News Section -->
+      <h2>Latest Health News</h2>
+      <div id="news-section" class="news-section">
+        <div class="news-card">
+          <h3>10 Tips for a Healthy Heart</h3>
+          <p>Regular exercise and balanced diet are key to heart health.</p>
+          <a href="#">Read more</a>
+        </div>
+        <div class="news-card">
+          <h3>Mental Health Awareness</h3>
+          <p>Learn simple techniques to reduce stress and improve focus.</p>
+          <a href="#">Read more</a>
+        </div>
+        <div class="news-card">
+          <h3>Benefits of Yoga</h3>
+          <p>Yoga helps improve flexibility, balance, and mental wellbeing.</p>
+          <a href="#">Read more</a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCnowHleZxXSH3bK34Bb1ZOgUNe5T28Gsg",
+      authDomain: "mdvita-229be.firebaseapp.com",
+      projectId: "mdvita-229be",
+      storageBucket: "mdvita-229be.appspot.com",
+      messagingSenderId: "417004792942",
+      appId: "1:417004792942:web:fe89b380020f15318fca7f",
+      measurementId: "G-NT5P07MJHX"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const profilePic = document.getElementById("profile-pic");
+    const userNameTop = document.getElementById("user-name-top");
+
+    onAuthStateChanged(auth, user => {
+      if(user){
+        userNameTop.innerText = user.displayName || user.email;
+        if(user.photoURL) profilePic.src = user.photoURL;
+      } else {
+        window.location.href = "/"; // Flask login route
+      }
+    });
+
+    window.goToProfile = function(){
+      window.location.href = "/profile"; // Flask route
+    }
+
+    // ----------- YouTube Dynamic Search -----------
+    const searchInput = document.getElementById("search-query");
+    let searchTimeout;
+
+    searchInput.addEventListener("input", () => {
+      clearTimeout(searchTimeout);
+      searchTimeout = setTimeout(() => {
+        searchVideos(searchInput.value.trim());
+      }, 500);
+    });
+
+    async function searchVideos(query){
+      if(!query) return;
+      const API_KEY = "YOUR_YOUTUBE_API_KEY"; // Replace with your API Key
+      const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&q=${encodeURIComponent(query)}&maxResults=6&key=${API_KEY}`;
+
+      try{
+        const res = await fetch(url);
+        const data = await res.json();
+        const videosSection = document.getElementById("videos-section");
+        videosSection.innerHTML = "";
+
+        data.items.forEach(item => {
+          const videoId = item.id.videoId;
+          const title = item.snippet.title;
+          const videoCard = document.createElement("div");
+          videoCard.classList.add("video-card");
+          videoCard.innerHTML = `
+            <iframe width="350" height="200" src="https://www.youtube.com/embed/${videoId}" 
+              title="${title}" frameborder="0" allowfullscreen></iframe>
+            <p>${title}</p>
+          `;
+          videosSection.appendChild(videoCard);
+        });
+      }catch(err){
+        console.error("Error fetching videos:", err);
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MDVita - Login</title>
+  <link rel="stylesheet" href="/static/base.css">
+</head>
+<body>
+  <div class="login-bg">
+    <div class="container">
+      <img src="/static/images/logo.png" alt="MDVita Logo" class="logo">
+      <h1>MDVita</h1>
+
+      <div class="tabs">
+        <button id="signin-tab" class="active">Sign In</button>
+        <button id="signup-tab">Sign Up</button>
+      </div>
+
+      <!-- Sign In Form -->
+      <div id="signin-form">
+        <input type="email" id="signin-email" placeholder="Email" />
+        <input type="password" id="signin-password" placeholder="Password" />
+        <button onclick="login()">Sign In</button>
+      </div>
+
+      <!-- Sign Up Form -->
+      <div id="signup-form" style="display:none;">
+        <input type="text" id="signup-name" placeholder="Name" />
+        <input type="email" id="signup-email" placeholder="Email" />
+        <input type="password" id="signup-password" placeholder="Password (min 6)" />
+        <input type="number" id="signup-age" placeholder="Age (13-30)" />
+        <button onclick="signup()">Sign Up</button>
+      </div>
+
+      <div id="message"></div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCnowHleZxXSH3bK34Bb1ZOgUNe5T28Gsg",
+      authDomain: "mdvita-229be.firebaseapp.com",
+      projectId: "mdvita-229be",
+      storageBucket: "mdvita-229be.appspot.com",
+      messagingSenderId: "417004792942",
+      appId: "1:417004792942:web:fe89b380020f15318fca7f",
+      measurementId: "G-NT5P07MJHX"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const msg = document.getElementById("message");
+
+    // Tabs
+    const signinTab = document.getElementById("signin-tab");
+    const signupTab = document.getElementById("signup-tab");
+    signinTab.onclick = () => {
+      document.getElementById("signin-form").style.display = "block";
+      document.getElementById("signup-form").style.display = "none";
+      signinTab.classList.add("active");
+      signupTab.classList.remove("active");
+      msg.innerText="";
+    };
+    signupTab.onclick = () => {
+      document.getElementById("signin-form").style.display = "none";
+      document.getElementById("signup-form").style.display = "block";
+      signupTab.classList.add("active");
+      signinTab.classList.remove("active");
+      msg.innerText="";
+    };
+
+    // Sign In
+    window.login = () => {
+      const email = document.getElementById("signin-email").value;
+      const password = document.getElementById("signin-password").value;
+      signInWithEmailAndPassword(auth,email,password)
+        .then(()=> window.location.href="/dashboard")
+        .catch(err=> { msg.style.color="#ff4c4c"; msg.innerText=err.message; });
+    }
+
+    // Sign Up
+    window.signup = () => {
+      const name = document.getElementById("signup-name").value;
+      const email = document.getElementById("signup-email").value;
+      const password = document.getElementById("signup-password").value;
+      const age = parseInt(document.getElementById("signup-age").value);
+      if(age<13 || age>30){ msg.style.color="#ff4c4c"; msg.innerText="Age must be between 13 and 30"; return; }
+
+      createUserWithEmailAndPassword(auth,email,password)
+        .then(userCred=>{
+          updateProfile(userCred.user,{displayName:name})
+            .then(()=> window.location.href="/dashboard")
+            .catch(()=> window.location.href="/dashboard");
+        })
+        .catch(err=> { msg.style.color="#ff4c4c"; msg.innerText=err.message; });
+    }
+  </script>
+</body>
+</html>

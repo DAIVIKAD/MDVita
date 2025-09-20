@@ -1,0 +1,14 @@
+runtime: python310  # or python311
+entrypoint: gunicorn -b :$PORT app:app
+
+instance_class: F2  # optional, adjust if needed
+
+env_variables:
+  GEMINI_API_KEY: "YOUR_GEMINI_API_KEY"
+
+handlers:
+  - url: /static
+    static_dir: static
+
+  - url: /.*
+    script: auto

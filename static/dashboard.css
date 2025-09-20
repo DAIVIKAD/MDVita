@@ -1,0 +1,233 @@
+/* ====== General Body ====== */
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  margin: 0;
+  padding: 0;
+  background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
+  color: #fff;
+  min-height: 100vh;
+}
+
+/* ====== Container ====== */
+.dashboard-container {
+  max-width: 1200px;
+  margin: 20px auto;
+  padding: 20px 30px;
+  background: rgba(0,0,0,0.25);
+  border-radius: 15px;
+  text-align: center;
+}
+
+/* ====== Header ====== */
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.logo-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo {
+  width: 70px;
+}
+
+.profile-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.profile-pic {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  border: 2px solid #00d4aa;
+}
+
+/* ====== Greeting ====== */
+h2#greeting {
+  color: #00d4aa;
+  margin-bottom: 25px;
+}
+
+/* ====== Mood Buttons ====== */
+.mood-buttons {
+  margin-bottom: 20px;
+}
+
+.mood-buttons button {
+  font-size: 28px;
+  margin: 6px;
+  padding: 10px;
+  border: none;
+  background: rgba(0,212,170,0.1);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: transform 0.2s ease, background 0.3s ease;
+}
+
+.mood-buttons button:hover {
+  transform: scale(1.2);
+  background: rgba(0,212,170,0.2);
+}
+
+/* ====== Mood Chart ====== */
+canvas#moodChart {
+  background: rgba(255,255,255,0.05);
+  border: 2px solid #00d4aa;
+  border-radius: 10px;
+  margin: 20px auto;
+  display: block;
+}
+
+/* ====== Navigation Cards ====== */
+.nav-cards {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 20px;
+  margin-top: 25px;
+}
+
+.card {
+  background: rgba(0,212,170,0.1);
+  border: 2px solid #00d4aa;
+  border-radius: 15px;
+  padding: 15px;
+  width: 140px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.card img {
+  width: 50px;
+  height: 50px;
+  margin-bottom: 8px;
+}
+
+.card span {
+  color: #00d4aa;
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.card:hover {
+  transform: scale(1.05);
+  background: rgba(0,212,170,0.2);
+}
+
+/* Discover Search */
+.discover-search {
+  margin: 20px 0;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.discover-search input {
+  padding: 10px;
+  width: 300px;
+  border-radius: 8px;
+  border: 2px solid #00d4aa;
+  outline: none;
+}
+
+.discover-search button {
+  padding: 10px 15px;
+  border-radius: 8px;
+  border: none;
+  background-color: #00d4aa;
+  color: #fff;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.discover-search button:hover {
+  background-color: #00b392;
+}
+
+/* Videos Section */
+.videos-section {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  justify-content: center;
+  margin-bottom: 30px;
+}
+
+.video-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.video-card iframe {
+  border-radius: 10px;
+  border: 2px solid #00d4aa;
+}
+
+.video-card p {
+  max-width: 350px;
+  text-align: center;
+  margin-top: 8px;
+  color: #00d4aa;
+  font-weight: 600;
+}
+
+/* News Section */
+.news-section {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  justify-content: center;
+}
+
+.news-card {
+  background: rgba(0,212,170,0.1);
+  border: 2px solid #00d4aa;
+  border-radius: 12px;
+  padding: 15px;
+  width: 300px;
+  text-align: left;
+}
+
+.news-card h3 {
+  font-size: 18px;
+  margin-bottom: 5px;
+  color: #00d4aa;
+}
+
+.news-card p {
+  font-size: 14px;
+  margin-bottom: 8px;
+  color: #aaa;  /* changed from white to grey */
+}
+
+.news-card a {
+  color: #ffd166;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.news-card a:hover {
+  text-decoration: underline;
+}
+
+/* ====== Responsive ====== */
+@media (max-width: 768px){
+  .dashboard-header {
+    flex-direction: column;
+    gap: 15px;
+  }
+  .nav-cards {
+    flex-direction: column;
+    align-items: center;
+  }
+}

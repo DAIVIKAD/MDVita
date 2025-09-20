@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MDVita - Games</title>
+  <link rel="stylesheet" href="/static/games.css">
+</head>
+<body>
+  <div class="games-container">
+    <h1>Games</h1>
+    <p>Select a game to play!</p>
+
+    <div class="game-cards">
+      <div class="game-card" onclick="startGame('tic-tac-toe')">
+        <img src="/static/images/tictactoe.png" alt="Tic Tac Toe">
+        <span>Tic Tac Toe</span>
+      </div>
+      <div class="game-card" onclick="startGame('snake')">
+        <img src="/static/images/snake.png" alt="Snake">
+        <span>Snake</span>
+      </div>
+      <div class="game-card" onclick="startGame('quiz')">
+        <img src="/static/images/quiz.png" alt="Quiz">
+        <span>Quiz</span>
+      </div>
+      <div class="game-card" onclick="startGame('memory')">
+        <img src="/static/images/memory.png" alt="Memory Game">
+        <span>Memory Game</span>
+      </div>
+      <div class="game-card" onclick="startGame('flappy')">
+        <img src="/static/images/flappy.png" alt="Flappy Bird">
+        <span>Flappy Bird</span>
+      </div>
+    </div>
+
+    <div id="game-section"></div>
+
+    <button class="back-btn" onclick="backToDashboard()">Back to Dashboard</button>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCnowHleZxXSH3bK34Bb1ZOgUNe5T28Gsg",
+      authDomain: "mdvita-229be.firebaseapp.com",
+      projectId: "mdvita-229be",
+      storageBucket: "mdvita-229be.appspot.com",
+      messagingSenderId: "417004792942",
+      appId: "1:417004792942:web:fe89b380020f15318fca7f",
+      measurementId: "G-NT5P07MJHX"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    const gameSection = document.getElementById('game-section');
+
+    // Redirect if not logged in
+    onAuthStateChanged(auth, user => {
+      if(!user) window.location.href = "/"; // Flask login page
+    });
+
+    window.logout = ()=> signOut(auth).then(()=> window.location.href="/"); 
+    window.backToDashboard = ()=> window.location.href="/dashboard";
+
+    function startGame(game){
+      gameSection.innerHTML = ''; 
+      switch(game){
+        case 'tic-tac-toe':
+          gameSection.innerHTML = `
+            <h2>Tic Tac Toe</h2>
+            <div id="tic-tac-toe-board" class="tic-tac-toe-board">
+              <div data-cell></div><div data-cell></div><div data-cell></div>
+              <div data-cell></div><div data-cell></div><div data-cell></div>
+              <div data-cell></div><div data-cell></div><div data-cell></div>
+            </div>
+            <p id="ttt-status"></p>
+          `;
+          initTicTacToe();
+          break;
+        case 'snake':
+          gameSection.innerHTML = `<h2>Snake Game</h2><canvas id="snake-canvas" width="300" height="300"></canvas>`;
+          initSnake();
+          break;
+        case 'quiz':
+          gameSection.innerHTML = `<h2>Quiz Game</h2><div id="quiz-game"></div>`;
+          initQuiz();
+          break;
+        case 'memory':
+          gameSection.innerHTML = `<h2>Memory Game</h2><div id="memory-game"></div>`;
+          initMemory();
+          break;
+        case 'flappy':
+          gameSection.innerHTML = `<h2>Flappy Bird</h2><canvas id="flappy-canvas" width="300" height="400"></canvas>`;
+          initFlappy();
+          break;
+      }
+    }
+
+    function backToGames(){
+      gameSection.innerHTML = '';
+    }
+
+    /* ===== Tic Tac Toe ===== */
+    function initTicTacToe(){
+      const X='X', O='O';
+      const board=document.querySelectorAll('[data-cell]');
+      const status=document.getElementById('ttt-status');
+      let turn=true; 
+      board.forEach(c=>{c.textContent=''; c.addEventListener('click', handleClick, {once:true});});
+      status.textContent="Your turn!";
+
+      function handleClick(e){
+        const cell=e.target;
+        cell.textContent = turn ? X : O;
+        cell.classList.add(turn ? 'x':'o');
+
+        if(checkWin(turn ? 'x':'o')){
+          status.textContent=`${turn?'X':'O'} Wins!`;
+          gameSection.innerHTML += `<button class="back-btn" onclick="backToGames()">Back to Games</button>`;
+          board.forEach(c=>c.replaceWith(c.cloneNode(true)));
+        } else if([...board].every(c=>c.classList.contains('x')||c.classList.contains('o'))){
+          status.textContent="Draw!";
+          gameSection.innerHTML += `<button class="back-btn" onclick="backToGames()">Back to Games</button>`;
+        } else turn=!turn;
+      }
+
+      function checkWin(cls){
+        const combos=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+        return combos.some(arr=>arr.every(i=>board[i].classList.contains(cls)));
+      }
+    }
+
+    /* ===== Snake ===== */
+    function initSnake(){
+      const canvas=document.getElementById('snake-canvas');
+      const ctx=canvas.getContext('2d');
+      const scale=20, rows=canvas.height/scale, cols=canvas.width/scale;
+      let snake=[{x:10,y:10}], food={x:5,y:5}, dx=1, dy=0, gameOver=false;
+
+      document.addEventListener('keydown', e=>{
+        if(e.key==='ArrowUp' && dy===0){dx=0;dy=-1}
+        if(e.key==='ArrowDown' && dy===0){dx=0;dy=1}
+        if(e.key==='ArrowLeft' && dx===0){dx=-1;dy=0}
+        if(e.key==='ArrowRight' && dx===0){dx=1;dy=0}
+      });
+
+      function showGameOver(){
+        gameOver=true;
+        gameSection.innerHTML += `<p style="color:#ff4c4c; font-size:1.2rem;">Game Over!</p>
+          <button class="back-btn" onclick="backToGames()">Back to Games</button>`;
+      }
+
+      function loop(){
+        if(gameOver) return;
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+        snake.unshift({x:snake[0].x+dx,y:snake[0].y+dy});
+        if(snake[0].x===food.x && snake[0].y===food.y){
+          food={x:Math.floor(Math.random()*cols), y:Math.floor(Math.random()*rows)};
+        } else snake.pop();
+
+        if(snake[0].x<0||snake[0].y<0||snake[0].x>=cols||snake[0].y>=rows||snake.slice(1).some(s=>s.x===snake[0].x && s.y===snake[0].y)){
+          showGameOver();
+        }
+
+        ctx.fillStyle='#00d4aa';
+        snake.forEach(s=>ctx.fillRect(s.x*scale,s.y*scale,scale,scale));
+        ctx.fillStyle='#f44336';
+        ctx.fillRect(food.x*scale, food.y*scale, scale, scale);
+      }
+
+      setInterval(loop,300);
+    }
+
+    /* ===== Flappy Bird ===== */
+    function initFlappy(){
+      const canvas=document.getElementById('flappy-canvas');
+      const ctx=canvas.getContext('2d');
+      let bird={x:50,y:150,vy:0}, pipes=[], gravity=0.6, jump=-10, frame=0, gameOver=false;
+
+      document.addEventListener('keydown', ()=>{bird.vy=jump;});
+
+      function showGameOver(){
+        gameOver=true;
+        gameSection.innerHTML += `<p style="color:#ff4c4c; font-size:1.2rem;">Game Over!</p>
+          <button class="back-btn" onclick="backToGames()">Back to Games</button>`;
+      }
+
+      function loop(){
+        if(gameOver) return;
+        frame++;
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+        bird.vy+=gravity; bird.y+=bird.vy;
+
+        ctx.fillStyle='#00d4aa';
+        ctx.fillRect(bird.x,bird.y,20,20);
+
+        if(frame%100===0){pipes.push({x:canvas.width,top:Math.random()*200+20});}
+        pipes.forEach(p=>{
+          p.x-=2;
+          ctx.fillStyle='#f44336';
+          ctx.fillRect(p.x,0,20,p.top);
+          ctx.fillRect(p.x,p.top+80,20,canvas.height-p.top-80);
+        });
+
+        if(bird.y<0 || bird.y>canvas.height || pipes.some(p=>(bird.x+20>p.x && bird.x<p.x+20 && (bird.y<p.top||bird.y>p.top+80)))){
+          showGameOver();
+        }
+      }
+
+      setInterval(loop,20);
+    }
+
+    /* ===== Quiz ===== */
+    function initQuiz(){
+      const quizEl = document.getElementById('quiz-game');
+      const questions = [
+        {q:"2+2=?", a:"4"},
+        {q:"Capital of France?", a:"Paris"},
+        {q:"5*3=?", a:"15"}
+      ];
+      let current = 0;
+      function showQuestion(){
+        quizEl.innerHTML = `<p>${questions[current].q}</p><input id="quiz-input"><button id="quiz-btn">Submit</button><p id="quiz-feedback"></p>`;
+        document.getElementById('quiz-btn').onclick=checkAnswer;
+      }
+      function checkAnswer(){
+        const ans=document.getElementById('quiz-input').value;
+        const feedback=document.getElementById('quiz-feedback');
+        feedback.innerText = ans.trim().toLowerCase() === questions[current].a.toLowerCase() ? "Correct!" : "Wrong!";
+        current=(current+1)%questions.length;
+        setTimeout(showQuestion,500);
+      }
+      showQuestion();
+    }
+
+    /* ===== Memory Game ===== */
+    function initMemory(){
+      const memoryEl=document.getElementById('memory-game');
+      const cards=['🍎','🍌','🍇','🍓','🍎','🍌','🍇','🍓'].sort(()=>Math.random()-0.5);
+      memoryEl.innerHTML = cards.map((c,i)=>`<div class="memory-card" data-index="${i}">${c}</div>`).join('');
+      let first=null, second=null, lock=false;
+      const cardEls=memoryEl.querySelectorAll('.memory-card');
+      cardEls.forEach(c=>{
+        c.addEventListener('click', ()=>{
+          if(lock || c===first || c===second) return;
+          c.classList.add('flipped');
+          if(!first) first=c;
+          else second=c;
+          if(first && second){
+            if(first.innerText===second.innerText){first=null; second=null;}
+            else{
+              lock=true;
+              setTimeout(()=>{first.classList.remove('flipped'); second.classList.remove('flipped'); first=null; second=null; lock=false;},500);
+            }
+          }
+        });
+      });
+    }
+  </script>
+</body>
+</html>

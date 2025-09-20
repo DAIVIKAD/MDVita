@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MDVita - Profile</title>
+  <link rel="stylesheet" href="/static/profile.css">
+</head>
+<body>
+  <div class="profile-bg">
+    <div class="profile-container">
+
+      <!-- Header with Profile Pic top-right -->
+      <div class="profile-header">
+        <h1>My Profile</h1>
+        <div class="top-profile">
+          <img id="profile-pic" src="/static/images/default-avatar.png" alt="Profile Picture">
+          <input type="file" id="upload-pic" accept="image/*" title="Change Picture">
+        </div>
+      </div>
+
+      <!-- Profile Info Card -->
+      <div class="profile-card">
+        <h2 id="user-name">Loading...</h2>
+        <p id="user-email">Loading...</p>
+      </div>
+
+      <!-- Actions -->
+      <div class="profile-actions">
+        <input type="text" id="new-name" placeholder="Enter new display name">
+        <button onclick="updateName()">Update Name</button>
+
+        <input type="password" id="new-password" placeholder="Enter new password">
+        <button onclick="updatePassword()">Update Password</button>
+      </div>
+
+      <button class="logout-btn" onclick="logout()">Logout</button>
+
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged, updateProfile, updatePassword, signOut } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js";
+    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-storage.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCnowHleZxXSH3bK34Bb1ZOgUNe5T28Gsg",
+      authDomain: "mdvita-229be.firebaseapp.com",
+      projectId: "mdvita-229be",
+      storageBucket: "mdvita-229be.appspot.com",
+      messagingSenderId: "417004792942",
+      appId: "1:417004792942:web:fe89b380020f15318fca7f",
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const storage = getStorage(app);
+
+    const profilePic = document.getElementById("profile-pic");
+    const uploadPic = document.getElementById("upload-pic");
+    const userName = document.getElementById("user-name");
+    const userEmail = document.getElementById("user-email");
+
+    onAuthStateChanged(auth, user => {
+      if(user){
+        userName.textContent = user.displayName || "Anonymous User";
+        userEmail.textContent = user.email;
+        if(user.photoURL) profilePic.src = user.photoURL;
+      } else {
+        window.location.href = "/"; // Redirect to Flask login
+      }
+    });
+
+    uploadPic.addEventListener("change", async e => {
+      const file = e.target.files[0];
+      if(!file) return;
+      const allowedTypes = ["image/jpeg", "image/png", "image/gif"];
+      if(!allowedTypes.includes(file.type)){
+        alert("Upload JPG, PNG, or GIF images!");
+        return;
+      }
+      const user = auth.currentUser;
+      const ext = file.name.split('.').pop();
+      const storageRef = ref(storage, `profile-pics/${user.uid}.${ext}`);
+      await uploadBytes(storageRef, file);
+      const url = await getDownloadURL(storageRef);
+      const urlWithCacheBuster = url + "?v=" + new Date().getTime();
+      await updateProfile(user, { photoURL: urlWithCacheBuster });
+      profilePic.src = urlWithCacheBuster;
+      alert("Profile picture updated!");
+    });
+
+    window.updateName = async ()=>{
+      const newName = document.getElementById("new-name").value;
+      if(!newName) return alert("Enter a name!");
+      await updateProfile(auth.currentUser, { displayName: newName });
+      userName.textContent = newName;
+      alert("Name updated!");
+    }
+
+    window.updatePassword = async ()=>{
+      const newPass = document.getElementById("new-password").value;
+      if(!newPass) return alert("Enter a new password!");
+      await updatePassword(auth.currentUser, newPass);
+      alert("Password updated!");
+    }
+
+    window.logout = ()=> signOut(auth).then(()=> window.location.href="/"); // Flask login
+  </script>
+</body>
+</html>
