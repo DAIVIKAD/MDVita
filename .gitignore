@@ -1,0 +1,21 @@
+# Environment files
+.env
+
+# YAML configuration files (optional, if sensitive)
+*.yaml
+*.yml
+
+# Python cache files
+__pycache__/
+*.pyc
+
+# VS Code / IDE settings
+.vscode/
+.idea/
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
