@@ -43,27 +43,24 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js";
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyCnowHleZxXSH3bK34Bb1ZOgUNe5T28Gsg",
-      authDomain: "mdvita-229be.firebaseapp.com",
-      projectId: "mdvita-229be",
-      storageBucket: "mdvita-229be.appspot.com",
-      messagingSenderId: "417004792942",
-      appId: "1:417004792942:web:fe89b380020f15318fca7f",
-      measurementId: "G-NT5P07MJHX"
-    };
+    // Fetch Firebase config from Flask
+    async function getFirebaseConfig(){
+      const res = await fetch('/firebase-config');
+      const data = await res.json();
+      return data.firebaseConfig;
+    }
 
+    const firebaseConfig = await getFirebaseConfig();
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
 
     const gameSection = document.getElementById('game-section');
 
-    // Redirect if not logged in
     onAuthStateChanged(auth, user => {
-      if(!user) window.location.href = "/"; // Flask login page
+      if(!user) window.location.href = "/"; // redirect to Flask login
     });
 
-    window.logout = ()=> signOut(auth).then(()=> window.location.href="/"); 
+    window.logout = ()=> signOut(auth).then(()=> window.location.href="/");
     window.backToDashboard = ()=> window.location.href="/dashboard";
 
     function startGame(game){

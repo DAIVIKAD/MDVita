@@ -39,15 +39,15 @@
 
       <!-- Navigation Cards -->
       <div class="nav-cards">
-        <div class="card" onclick="location.href='/journal'">
+        <div class="card" onclick="location.href='journal.html'">
           <img src="/static/images/journal.png" alt="Journal">
           <span>Journal</span>
         </div>
-        <div class="card" onclick="location.href='/discover'">
+        <div class="card" onclick="location.href='discover.html'">
           <img src="/static/images/discover.png" alt="Discover">
           <span>Discover</span>
         </div>
-        <div class="card" onclick="location.href='/games'">
+        <div class="card" onclick="location.href='games.html'">
           <img src="/static/images/games.png" alt="Games">
           <span>Games</span>
         </div>
@@ -65,15 +65,8 @@
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js";
     import { getFirestore, collection, doc, setDoc, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyCnowHleZxXSH3bK34Bb1ZOgUNe5T28Gsg",
-      authDomain: "mdvita-229be.firebaseapp.com",
-      projectId: "mdvita-229be",
-      storageBucket: "mdvita-229be.appspot.com",
-      messagingSenderId: "417004792942",
-      appId: "1:417004792942:web:fe89b380020f15318fca7f",
-      measurementId: "G-NT5P07MJHX"
-    };
+    // Fetch Firebase config from Flask backend
+    const firebaseConfig = await fetch('/firebase-config').then(res => res.json());
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
@@ -125,7 +118,7 @@
 
         await loadMoodChart(user.uid);
       } else {
-        window.location.href = "/";
+        window.location.href = "index.html";
       }
     });
 
@@ -142,6 +135,7 @@
     }
 
     async function loadMoodChart(uid){
+      const labels = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
       const last7 = Array(7).fill(null);
 
       const q = query(collection(db,"moods"), orderBy("date","desc"), limit(7));
@@ -160,7 +154,7 @@
     }
 
     window.goToProfile = function(){
-      window.location.href = "/profile";
+      window.location.href = "profile.html";
     }
   </script>
 </body>

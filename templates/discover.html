@@ -84,15 +84,15 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js";
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyCnowHleZxXSH3bK34Bb1ZOgUNe5T28Gsg",
-      authDomain: "mdvita-229be.firebaseapp.com",
-      projectId: "mdvita-229be",
-      storageBucket: "mdvita-229be.appspot.com",
-      messagingSenderId: "417004792942",
-      appId: "1:417004792942:web:fe89b380020f15318fca7f",
-      measurementId: "G-NT5P07MJHX"
-    };
+    // Fetch Firebase config & YouTube API key from backend
+    const configData = await fetch('/firebase-config')
+      .then(res => res.json())
+      .catch(err => {
+        console.error("Failed to load Firebase config:", err);
+        return {};
+      });
+
+    const { firebaseConfig, youtubeApiKey } = configData;
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
@@ -124,9 +124,8 @@
     });
 
     async function searchVideos(query){
-      if(!query) return;
-      const API_KEY = "YOUR_YOUTUBE_API_KEY"; // Replace with your API Key
-      const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&q=${encodeURIComponent(query)}&maxResults=6&key=${API_KEY}`;
+      if(!query || !youtubeApiKey) return;
+      const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&q=${encodeURIComponent(query)}&maxResults=6&key=${youtubeApiKey}`;
 
       try{
         const res = await fetch(url);

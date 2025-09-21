@@ -10,7 +10,7 @@
   <div class="profile-bg">
     <div class="profile-container">
 
-      <!-- Header with Profile Pic top-right -->
+      <!-- Header -->
       <div class="profile-header">
         <h1>My Profile</h1>
         <div class="top-profile">
@@ -19,7 +19,7 @@
         </div>
       </div>
 
-      <!-- Profile Info Card -->
+      <!-- Profile Info -->
       <div class="profile-card">
         <h2 id="user-name">Loading...</h2>
         <p id="user-email">Loading...</p>
@@ -28,13 +28,13 @@
       <!-- Actions -->
       <div class="profile-actions">
         <input type="text" id="new-name" placeholder="Enter new display name">
-        <button onclick="updateName()">Update Name</button>
+        <button id="update-name-btn">Update Name</button>
 
         <input type="password" id="new-password" placeholder="Enter new password">
-        <button onclick="updatePassword()">Update Password</button>
+        <button id="update-pass-btn">Update Password</button>
       </div>
 
-      <button class="logout-btn" onclick="logout()">Logout</button>
+      <button class="logout-btn" id="logout-btn">Logout</button>
 
     </div>
   </div>
@@ -44,15 +44,13 @@
     import { getAuth, onAuthStateChanged, updateProfile, updatePassword, signOut } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js";
     import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-storage.js";
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyCnowHleZxXSH3bK34Bb1ZOgUNe5T28Gsg",
-      authDomain: "mdvita-229be.firebaseapp.com",
-      projectId: "mdvita-229be",
-      storageBucket: "mdvita-229be.appspot.com",
-      messagingSenderId: "417004792942",
-      appId: "1:417004792942:web:fe89b380020f15318fca7f",
-    };
+    async function getFirebaseConfig(){
+      const res = await fetch('/firebase-config');
+      const data = await res.json();
+      return data;
+    }
 
+    const firebaseConfig = await getFirebaseConfig();
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const storage = getStorage(app);
@@ -61,6 +59,9 @@
     const uploadPic = document.getElementById("upload-pic");
     const userName = document.getElementById("user-name");
     const userEmail = document.getElementById("user-email");
+    const updateNameBtn = document.getElementById("update-name-btn");
+    const updatePassBtn = document.getElementById("update-pass-btn");
+    const logoutBtn = document.getElementById("logout-btn");
 
     onAuthStateChanged(auth, user => {
       if(user){
@@ -68,7 +69,7 @@
         userEmail.textContent = user.email;
         if(user.photoURL) profilePic.src = user.photoURL;
       } else {
-        window.location.href = "/"; // Redirect to Flask login
+        window.location.href = "/";
       }
     });
 
@@ -77,36 +78,50 @@
       if(!file) return;
       const allowedTypes = ["image/jpeg", "image/png", "image/gif"];
       if(!allowedTypes.includes(file.type)){
-        alert("Upload JPG, PNG, or GIF images!");
-        return;
+        return alert("Upload JPG, PNG, or GIF images!");
       }
       const user = auth.currentUser;
       const ext = file.name.split('.').pop();
       const storageRef = ref(storage, `profile-pics/${user.uid}.${ext}`);
-      await uploadBytes(storageRef, file);
-      const url = await getDownloadURL(storageRef);
-      const urlWithCacheBuster = url + "?v=" + new Date().getTime();
-      await updateProfile(user, { photoURL: urlWithCacheBuster });
-      profilePic.src = urlWithCacheBuster;
-      alert("Profile picture updated!");
+      try {
+        await uploadBytes(storageRef, file);
+        const url = await getDownloadURL(storageRef);
+        const urlWithCacheBuster = url + "?v=" + new Date().getTime();
+        await updateProfile(user, { photoURL: urlWithCacheBuster });
+        profilePic.src = urlWithCacheBuster;
+        alert("Profile picture updated!");
+      } catch(err){
+        console.error(err);
+        alert("Failed to upload profile picture.");
+      }
     });
 
-    window.updateName = async ()=>{
+    updateNameBtn.addEventListener("click", async ()=>{
       const newName = document.getElementById("new-name").value;
       if(!newName) return alert("Enter a name!");
-      await updateProfile(auth.currentUser, { displayName: newName });
-      userName.textContent = newName;
-      alert("Name updated!");
-    }
+      try {
+        await updateProfile(auth.currentUser, { displayName: newName });
+        userName.textContent = newName;
+        alert("Name updated!");
+      } catch(err){
+        console.error(err);
+        alert("Failed to update name.");
+      }
+    });
 
-    window.updatePassword = async ()=>{
+    updatePassBtn.addEventListener("click", async ()=>{
       const newPass = document.getElementById("new-password").value;
       if(!newPass) return alert("Enter a new password!");
-      await updatePassword(auth.currentUser, newPass);
-      alert("Password updated!");
-    }
+      try {
+        await updatePassword(auth.currentUser, newPass);
+        alert("Password updated!");
+      } catch(err){
+        console.error(err);
+        alert("Failed to update password. You may need to re-login.");
+      }
+    });
 
-    window.logout = ()=> signOut(auth).then(()=> window.location.href="/"); // Flask login
+    logoutBtn.addEventListener("click", ()=> signOut(auth).then(()=> window.location.href="/"));
   </script>
 </body>
 </html>

@@ -9,6 +9,18 @@ load_dotenv()
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 GEMINI_API_URL = f"https://generativelanguage.googleapis.com/v1beta/models/text-bison-001:generateMessage?key={GEMINI_API_KEY}"
 
+FALLBACK_SENTIMENT = {
+    "mood": "Neutral",
+    "emoji": "😐",
+    "score": 3,
+    "message": "It's okay to feel this way sometimes.",
+    "suggestions": [
+        "Take a short walk outside",
+        "Drink some water",
+        "Try a breathing exercise"
+    ]
+}
+
 app = Flask(__name__, static_folder="static", template_folder="templates")
 
 # ----------------- PAGES -----------------
@@ -51,7 +63,6 @@ def analyze_journal():
     if not text:
         return jsonify({"success": False, "error": "No text provided"}), 400
 
-    # Gemini prompt
     prompt = f"""
     Analyze the sentiment of the following journal entry. 
     Return JSON with keys: 
@@ -65,16 +76,8 @@ def analyze_journal():
     {text}
     """
 
-    # Correct payload for Gemini 1.5
     payload = {
-        "prompt": [
-            {
-                "author": "user",
-                "content": [
-                    {"type": "text", "text": prompt}
-                ]
-            }
-        ],
+        "prompt": [{"author": "user", "content": [{"type": "text", "text": prompt}]}],
         "temperature": 0.2,
         "max_output_tokens": 500,
         "candidate_count": 1
@@ -84,46 +87,31 @@ def analyze_journal():
         response = requests.post(GEMINI_API_URL, json=payload, timeout=30)
         response.raise_for_status()
         result = response.json()
+        output_text = result.get("candidates", [{}])[0].get("content", [{}])[0].get("text", "")
 
-        # Extract model-generated text
-        output_text = (
-            result.get("candidates", [{}])[0]
-            .get("content", [{}])[0]
-            .get("text", "")
-        )
-
-        # Try parsing JSON from model output
         try:
             sentiment = json.loads(output_text)
         except Exception:
-            sentiment = {
-                "mood": "Neutral",
-                "emoji": "😐",
-                "score": 3,
-                "message": "It's okay to feel this way sometimes.",
-                "suggestions": [
-                    "Take a short walk outside",
-                    "Drink some water",
-                    "Try a breathing exercise"
-                ]
-            }
+            sentiment = FALLBACK_SENTIMENT
 
         return jsonify({"success": True, "sentiment": sentiment, "api_down": False})
 
     except Exception as e:
-        # Fallback in case API fails
-        fallback = {
-            "mood": "Neutral",
-            "emoji": "😐",
-            "score": 3,
-            "message": "It's okay to feel this way sometimes.",
-            "suggestions": [
-                "Take a short walk outside",
-                "Drink some water",
-                "Try a breathing exercise"
-            ]
-        }
-        return jsonify({"success": True, "sentiment": fallback, "api_down": True, "error": str(e)}), 500
+        return jsonify({"success": True, "sentiment": FALLBACK_SENTIMENT, "api_down": True, "error": str(e)}), 500
+
+# ----------------- FIREBASE CONFIG ROUTE -----------------
+@app.route("/firebase-config")
+def firebase_config():
+    config = {
+        "apiKey": os.getenv("FIREBASE_API_KEY"),
+        "authDomain": os.getenv("FIREBASE_AUTH_DOMAIN"),
+        "projectId": os.getenv("FIREBASE_PROJECT_ID"),
+        "storageBucket": os.getenv("FIREBASE_STORAGE_BUCKET"),
+        "messagingSenderId": os.getenv("FIREBASE_MESSAGING_SENDER_ID"),
+        "appId": os.getenv("FIREBASE_APP_ID"),
+        "measurementId": os.getenv("FIREBASE_MEASUREMENT_ID"),
+    }
+    return jsonify(config)
 
 # ----------------- RUN APP -----------------
 if __name__ == "__main__":
