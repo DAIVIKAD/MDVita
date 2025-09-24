@@ -9,6 +9,9 @@ load_dotenv()
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 GEMINI_API_URL = f"https://generativelanguage.googleapis.com/v1beta/models/text-bison-001:generateMessage?key={GEMINI_API_KEY}"
 
+# YouTube API key
+YOUTUBE_API_KEY = os.getenv("YOUTUBE_API_KEY")
+
 FALLBACK_SENTIMENT = {
     "mood": "Neutral",
     "emoji": "😐",
@@ -110,6 +113,7 @@ def firebase_config():
         "messagingSenderId": os.getenv("FIREBASE_MESSAGING_SENDER_ID"),
         "appId": os.getenv("FIREBASE_APP_ID"),
         "measurementId": os.getenv("FIREBASE_MEASUREMENT_ID"),
+        "youtubeApiKey": YOUTUBE_API_KEY  # ✅ Added YouTube API key
     }
     return jsonify(config)
 
